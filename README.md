@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="media/thumbnail.jpg" alt="ChiiBot Banner" width="400"/>
+  <img src="media/thumbnail.jpg" alt="KiraKira-Purinhisu Banner" width="400"/>
 </p>
 
 <h1 align="center">KiraKira-Purinhisu - Bot WhatsApp Multi-Device</h1>
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>ChiiBot</strong> adalah bot WhatsApp ringan yang dibangun menggunakan <strong><a href="https://github.com/WhiskeySockets/Baileys">Baileys</a></strong> untuk mendukung fungsionalitas Multi-Device. Bot ini dirancang agar mudah digunakan dan dikembangkan lebih lanjut.
+  <strong>KiraKira-Purinhisu</strong> adalah bot WhatsApp ringan yang dibangun menggunakan <strong><a href="https://github.com/WhiskeySockets/Baileys">Baileys</a></strong> untuk mendukung fungsionalitas Multi-Device. Bot ini dirancang agar mudah digunakan dan dikembangkan lebih lanjut.
 </p>
 
 ## 📝 Daftar Isi
