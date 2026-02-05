@@ -1,0 +1,77 @@
+import { watchFile, unwatchFile } from 'fs';
+import chalk from 'chalk';
+import { fileURLToPath } from 'url';
+
+global.pairingNumber = 6285134205152;
+global.owner = [['6283170121139', 'Key', true]];
+
+global.namebot = 'KiraKira Purinhisu';
+global.author = 'Key';
+global.source = 'https://chat.whatsapp.com/JUUkxTVW5OPIPnIx8wdoYm?mode=gi_t';
+
+global.wait = 'Loading...';
+global.eror = 'Terjadi Kesalahan...';
+
+global.pakasir = {
+	slug: 'yarsyaai',
+	apikey: 'dxNSbmCOxzNIIhogZO5PihBfPfZHlFzh',
+	expired: 30, //1 = 1menit. 30 = 30menit
+};
+
+global.stickpack = 'Croted By';
+global.stickauth = namebot;
+
+global.multiplier = 38; // The higher, The harder levelup
+
+/*============== EMOJI ==============*/
+global.rpg = {
+	emoticon(string) {
+		string = string.toLowerCase();
+		let emot = {
+			level: '📊',
+			limit: '🎫',
+			health: '❤️',
+			stamina: '🔋',
+			exp: '✨',
+			money: '💹',
+			bank: '🏦',
+			potion: '🥤',
+			diamond: '💎',
+			common: '📦',
+			uncommon: '🛍️',
+			mythic: '🎁',
+			legendary: '🗃️',
+			superior: '💼',
+			pet: '🔖',
+			trash: '🗑',
+			armor: '🥼',
+			sword: '⚔️',
+			pickaxe: '⛏️',
+			fishingrod: '🎣',
+			wood: '🪵',
+			rock: '🪨',
+			string: '🕸️',
+			horse: '🐴',
+			cat: '🐱',
+			dog: '🐶',
+			fox: '🦊',
+			petFood: '🍖',
+			iron: '⛓️',
+			gold: '🪙',
+			emerald: '❇️',
+			upgrader: '🧰',
+		};
+		let results = Object.keys(emot)
+			.map((v) => [v, new RegExp(v, 'gi')])
+			.filter((v) => v[1].test(string));
+		if (!results.length) return '';
+		else return emot[results[0][0]];
+	},
+};
+
+let file = fileURLToPath(import.meta.url);
+watchFile(file, () => {
+	unwatchFile(file);
+	console.log(chalk.redBright("Update 'config.js'"));
+	import(`${file}?update=${Date.now()}`);
+});
