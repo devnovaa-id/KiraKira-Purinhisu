@@ -28,6 +28,32 @@ export async function handler(chatUpdate) {
 
 		const isROwner = [conn.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
 		const isOwner = isROwner || m.fromMe;
+
+		// ========== CEK USER BANNED ==========
+		if (global.db.data.users[m.sender]?.banned && !isOwner) {
+			console.log(chalk.redBright(`🚫 User ${m.sender} (${conn.getName(m.sender)}) is BANNED but tried to access the bot`));
+			
+			// Kirim pesan ke user yang dibanned
+			try {
+				await this.sendMessage(m.chat, {
+					text: `🚫 *AKUN ANDA DIBANNED*\n\nAnda tidak dapat menggunakan bot ini karena telah melanggar aturan.\n\nJika merasa ini kesalahan, hubungi owner:\n@${global.owner[0][0].replace(/[^0-9]/g, '')}`,
+					mentions: [global.owner[0][0] + '@s.whatsapp.net']
+				}, { quoted: m });
+			} catch (e) {
+				console.error('Failed to send banned message:', e);
+			}
+			
+			// Hapus pesan yang dikirim user yang dibanned (jika di group)
+			if (m.isGroup) {
+				try {
+					await this.sendMessage(m.chat, { delete: m.key });
+				} catch (e) {}
+			}
+			
+			return; // Hentikan pemrosesan
+		}
+		// ========== AKHIR CEK BANNED ==========
+
 		const isPrems = isROwner || db.data.users[m.sender]?.premiumTime > 0;
 
 		if (global.db.data.settings[this.user.jid].gconly && !m.isGroup && !isOwner && !isPrems) return;
@@ -140,6 +166,14 @@ export async function handler(chatUpdate) {
 					let chat = global.db.data.chats[m.chat];
 					if (name != 'tools-delete.js' && chat?.isBanned) return; // Except this
 				}
+				
+				// ========== CEK BANNED UNTUK PLUGIN SPESIFIK ==========
+				if (global.db.data.users[m.sender]?.banned && !isOwner) {
+					console.log(chalk.redBright(`🚫 Banned user ${m.sender} tried to use plugin: ${name}`));
+					return;
+				}
+				// ========== AKHIR CEK BANNED ==========
+				
 				if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) {
 					// Both Owner
 					fail('owner', m, this);
@@ -345,8 +379,8 @@ export async function participantsUpdate({ id, participants, action, simulate = 
 				let user = this.getJid(users?.phoneNumber || users.id);
 				text = (
 					action === 'promote'
-						? chat.sPromote || this.spromote || conn.spromote || '@user ```is now Admin```'
-						: chat.sDemote || this.sdemote || conn.sdemote || '@user ```is no longer Admin```'
+						? chat.sPromote || this.spromote || conn.spromote || '@user sekarang admin!'
+						: chat.sDemote || this.sdemote || conn.sdemote || '@user sekarang bukan admin!'
 				)
 					.replace('@user', '@' + user.split('@')[0])
 					.replace('@subject', this.getName(id))
@@ -413,6 +447,7 @@ global.dfail = (type, m, conn) => {
 		botAdmin: 'Only Bot Admin - Command ini hanya bisa digunakan ketika bot menjadi admin',
 		unreg: 'Halo kak! 👋 Anda harus mendaftar ke database bot dulu sebelum menggunakan fitur ini\nCara daftarnya tulis .daftar Nama.umur',
 		restrict: 'Restrict - Fitur restrict belum diaktifkan di chat ini',
+		banned: '🚫 Banned - Akun Anda telah dibanned dari menggunakan bot ini',
 	}[type];
 	if (msg) return conn.reply(m.chat, msg, m);
 };

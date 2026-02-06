@@ -146,8 +146,6 @@ async function connectionUpdate(update) {
 
 	if (receivedPendingNotifications) console.log(chalk.yellow('Menunggu Pesan Baru'));
 
-	// if (connection === 'close') console.log(chalk.red('⏱️ Koneksi terputus & mencoba menyambung ulang...'))
-
 	const output = lastDisconnect?.error?.output;
 	if (output?.payload) {
 		if (output.statusCode === 401) {
@@ -218,6 +216,20 @@ global.reloadHandler = async function (restatConn) {
 	conn.connectionUpdate = connectionUpdate.bind(global.conn);
 	conn.credsUpdate = saveCreds.bind(global.conn);
 
+	// ========== HANDLE BANNED USER MESSAGES ==========
+	conn.ev.on('messages.upsert', async (chatUpdate) => {
+		try {
+			await conn.handler(chatUpdate);
+		} catch (e) {
+			console.error('Error in message handler:', e);
+			// Jika error karena user banned, kita ignore saja
+			if (e.message && e.message.includes('banned')) {
+				console.log('Ignoring banned user error');
+			}
+		}
+	});
+
+	// ========== HANDLE CALLS ==========
 	conn.ev.on('call', async (calls) => {
 		for (const call of calls) {
 			const { id, from, status } = call;
