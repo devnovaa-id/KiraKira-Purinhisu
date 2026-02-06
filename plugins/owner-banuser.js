@@ -1,3 +1,5 @@
+import chalk from 'chalk';
+
 let handler = async (m, { text, conn, usedPrefix }) => {
 	if (!text) throw `Siapa yang ingin di-ban?\n\nContoh:\n${usedPrefix}ban @user\n${usedPrefix}ban 628....\n${usedPrefix}ban all (untuk banned semua user)`;
 	
