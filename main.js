@@ -216,19 +216,6 @@ global.reloadHandler = async function (restatConn) {
 	conn.connectionUpdate = connectionUpdate.bind(global.conn);
 	conn.credsUpdate = saveCreds.bind(global.conn);
 
-	// ========== HANDLE BANNED USER MESSAGES ==========
-	conn.ev.on('messages.upsert', async (chatUpdate) => {
-		try {
-			await conn.handler(chatUpdate);
-		} catch (e) {
-			console.error('Error in message handler:', e);
-			// Jika error karena user banned, kita ignore saja
-			if (e.message && e.message.includes('banned')) {
-				console.log('Ignoring banned user error');
-			}
-		}
-	});
-
 	// ========== HANDLE CALLS ==========
 	conn.ev.on('call', async (calls) => {
 		for (const call of calls) {
@@ -241,12 +228,15 @@ global.reloadHandler = async function (restatConn) {
 		}
 	});
 
+	// ========== PASANG EVENT LISTENER ==========
+	// HANYA PASANG SEKALI di sini, jangan di tempat lain!
 	conn.ev.on('messages.upsert', conn.handler);
 	conn.ev.on('group-participants.update', conn.participantsUpdate);
 	conn.ev.on('groups.update', conn.groupsUpdate);
 	conn.ev.on('message.delete', conn.onDelete);
 	conn.ev.on('connection.update', conn.connectionUpdate);
 	conn.ev.on('creds.update', conn.credsUpdate);
+	
 	isInit = false;
 	return true;
 };
