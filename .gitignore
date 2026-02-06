@@ -40,7 +40,9 @@ build/Release
 # Dependency directories
 node_modules/
 sessions/
-data/
+data
+backup.cjs
+backup.md
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
