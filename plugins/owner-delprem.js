@@ -29,35 +29,53 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         return phone;
     }
 
-    if (!args[0] && !m.mentionedJid?.[0]) {
+    if (!args[0] && !m.mentionedJid?.[0] && !m.quoted) {
         throw `Tag seseorang atau sertakan nomor!\n\nContoh:\n• ${usedPrefix + command} @tag\n• ${usedPrefix + command} 6281234567890\n• ${usedPrefix + command} 081234567890`;
     }
 
     let who;
     let userNumber = '';
     let userName = '';
+    let isMentioned = false;
     
     // Tentukan target berdasarkan konteks
     if (m.quoted) {
         who = m.quoted.sender;
         userNumber = who.split('@')[0];
-        userName = await conn.getName(who) || 'Unknown';
+        try {
+            userName = await conn.getName(who) || 'Unknown';
+        } catch {
+            userName = 'Unknown';
+        }
     } else if (m.isGroup) {
         if (m.mentionedJid && m.mentionedJid[0]) {
             who = m.mentionedJid[0];
+            isMentioned = true;
             userNumber = who.split('@')[0];
-            userName = await conn.getName(who) || 'Unknown';
+            try {
+                userName = await conn.getName(who) || 'Unknown';
+            } catch {
+                userName = 'Unknown';
+            }
         } else if (args[0]) {
             userNumber = normalizePhoneNumber(args[0]);
             if (!userNumber) throw 'Format nomor tidak valid!';
             who = userNumber + '@s.whatsapp.net';
-            userName = await conn.getName(who) || 'Unknown';
+            try {
+                userName = await conn.getName(who) || 'Unknown';
+            } catch {
+                userName = 'Unknown';
+            }
         }
     } else if (args[0]) {
         userNumber = normalizePhoneNumber(args[0]);
         if (!userNumber) throw 'Format nomor tidak valid!';
         who = userNumber + '@s.whatsapp.net';
-        userName = await conn.getName(who) || 'Unknown';
+        try {
+            userName = await conn.getName(who) || 'Unknown';
+        } catch {
+            userName = 'Unknown';
+        }
     }
 
     // Validasi JID
@@ -74,40 +92,52 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             name: userName,
             premium: false,
             premiumTime: 0,
-            // Tambahkan field default lainnya sesuai kebutuhan
             exp: 0,
             limit: 20,
             level: 1,
             registered: false,
-            // ... field lainnya
         };
     }
     
     let user = users[who];
     
+    // Update nama jika masih "Unknown" atau "this key"
+    if (user.name === 'Unknown' || user.name === 'this key' || !user.name) {
+        try {
+            const updatedName = await conn.getName(who);
+            if (updatedName && updatedName !== 'this key') {
+                user.name = updatedName;
+                userName = updatedName;
+            }
+        } catch (e) {
+            console.log('Gagal update nama:', e.message);
+        }
+    }
+    
     // Simpan status sebelumnya untuk informasi
     const sebelumnyaPremium = user.premium;
+    const sekarang = Date.now();
+    const waktuSekarang = moment().tz('Asia/Jakarta').format('DD/MM/YYYY HH:mm:ss');
     const sebelumnyaBerakhir = user.premiumTime ? 
         moment(user.premiumTime).tz('Asia/Jakarta').format('DD/MM/YYYY HH:mm:ss') : 
         'Tidak ada';
     const sisaHari = user.premiumTime ? 
-        Math.max(0, Math.ceil((user.premiumTime - Date.now()) / 86400000)) : 
+        Math.max(0, Math.ceil((user.premiumTime - sekarang) / 86400000)) : 
         0;
     
     // Hapus premium
     user.premium = false;
     user.premiumTime = 0;
     
-    // Update nama jika masih default
-    if (user.name === 'Unknown' || !user.name) {
-        user.name = userName;
-    }
-    
     // Format pesan respons
     let responseMsg = `✅ *PREMIUM DIHAPUS*\n\n` +
-                     `👤 *User:* ${user.name}\n` +
-                     `📞 *Nomor:* ${userNumber || who.split('@')[0]}\n` +
-                     `📅 *Waktu:* ${moment().tz('Asia/Jakarta').format('DD/MM/YYYY HH:mm:ss')}\n`;
+                     `👤 *User:* ${userName}\n`;
+    
+    if (isMentioned) {
+        responseMsg += `📌 *Mention:* @${userNumber}\n`;
+    }
+    
+    responseMsg += `📅 *Waktu:* ${waktuSekarang}\n`;
     
     if (sebelumnyaPremium) {
         responseMsg += `⚠️ *Status sebelumnya:* Premium\n`;
@@ -122,7 +152,14 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     responseMsg += `⭐ *Status sekarang:* Non-Premium`;
     
     // Kirim respons
-    await conn.reply(m.chat, responseMsg, m);
+    if (isMentioned && m.isGroup) {
+        await conn.sendMessage(m.chat, {
+            text: responseMsg,
+            mentions: [who]
+        }, { quoted: m });
+    } else {
+        await conn.reply(m.chat, responseMsg, m);
+    }
     
     // Coba kirim notifikasi ke user yang terkena dampak
     try {
@@ -131,18 +168,15 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             `Status premium Anda telah diubah.\n\n` +
             `*Detail:*\n` +
             `• Status: Non-Premium\n` +
-            `• Diubah pada: ${moment().tz('Asia/Jakarta').format('DD/MM/YYYY HH:mm:ss')}\n` +
+            `• Diubah pada: ${waktuSekarang}\n` +
             `• Bot: ${global.namebot}\n` +
             `• Owner: ${global.owner.map(v => v[0]).join(', ')}\n\n` +
             `Hubungi owner jika ada pertanyaan.`,
             null
         );
     } catch (e) {
-        console.log('Tidak bisa mengirim notifikasi ke user:', e.message);
+        console.log('Tidak bisa mengirim notifikasi ke user');
     }
-    
-    // Log ke console untuk debugging
-    console.log(`[PREMIUM] Premium dihapus untuk ${who} (${user.name}) oleh ${m.sender}`);
 };
 
 handler.help = ['delprem [@tag/nomor]'];
