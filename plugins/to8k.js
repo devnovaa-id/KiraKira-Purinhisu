@@ -76,13 +76,34 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         });
         
         // Parameter FFmpeg
+        // const ffmpegArgs = [
+        //     '-i', inputPath,
+        //     '-c:v', 'libx264',
+        //     '-preset', 'slow',
+        //     '-crf', '18',
+        //     '-vf', 'scale=1920:1080:flags=lanczos',
+        //     '-c:a', 'aac',
+        //     '-b:a', '192k',
+        //     '-movflags', '+faststart',
+        //     '-pix_fmt', 'yuv420p',
+        //     '-profile:v', 'high',
+        //     '-level', '4.2',
+        //     '-maxrate', '5M',
+        //     '-bufsize', '10M',
+        //     '-r', '30',
+        //     '-ar', '44100',
+        //     '-f', 'mp4',
+        //     '-y',
+        //     outputPath
+        // ];
         const ffmpegArgs = [
+            '-threads', '0',           
             '-i', inputPath,
             '-c:v', 'libx264',
-            '-preset', 'slow',
-            '-crf', '18',
+            '-preset', 'fast',  
+            '-crf', '24',             
             '-vf', 'scale=1920:1080:flags=lanczos',
-            '-c:a', 'aac',
+            '-c:a', 'aac',          
             '-b:a', '192k',
             '-movflags', '+faststart',
             '-pix_fmt', 'yuv420p',
