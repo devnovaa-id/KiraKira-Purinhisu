@@ -27,7 +27,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
             let frameIndex = 0;
             const startTime = moment();
             
-            progressMsg = await m.reply(`🔄 *Memproses Video...*\n\n${frames[0]} 0%\n📊 *Status:* Mendownload video...\n⏱️ *Mulai:* ${startTime.format('HH:mm:ss')}`);
+            progressMsg = await m.reply(`🎬 *VIDEO ENHANCEMENT PREMIUM*\n\n${frames[0]} 0%\n📊 Status: Mendownload video...\n⏱️ Mulai: ${startTime.format('HH:mm:ss')}\n⚡ Mode: Premium Quality`);
             
             progressInterval = setInterval(async () => {
                 try {
@@ -36,7 +36,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
                     const progressText = `${frames[frameIndex]} ${Math.floor((frameIndex / frames.length) * 15)}%`;
                     
                     await conn.sendMessage(m.chat, {
-                        text: `🔄 *Memproses Video...*\n\n${progressText}\n📊 *Status:* Processing...\n⏱️ *Waktu:* ${elapsed} detik`,
+                        text: `🎬 *VIDEO ENHANCEMENT PREMIUM*\n\n${progressText}\n📊 Status: Processing...\n⏱️ Waktu: ${elapsed} detik\n⚡ Mode: Premium Quality`,
                         edit: progressMsg.key
                     });
                 } catch (e) {
@@ -48,82 +48,64 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         await startProgressAnimation();
         
         // Log awal di konsol
-        console.log('\n' + chalk.cyan('╔══════════════════════════════════════════╗'));
-        console.log(chalk.cyan('║          🎬 VIDEO ENHANCEMENT TO8K          ║'));
-        console.log(chalk.cyan('╚══════════════════════════════════════════╝'));
+        console.log('\n' + chalk.cyan('╔══════════════════════════════════════════════════╗'));
+        console.log(chalk.cyan('║          🎬 PREMIUM VIDEO ENHANCEMENT TO8K           ║'));
+        console.log(chalk.cyan('╚══════════════════════════════════════════════════╝'));
         console.log(chalk.yellow(`📅 ${moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')}`));
         console.log(chalk.blue(`👤 User: ${m.sender.split('@')[0]}`));
         console.log(chalk.blue(`💬 Chat: ${m.chat}`));
-        console.log(chalk.cyan('════════════════════════════════════════════'));
+        console.log(chalk.cyan('════════════════════════════════════════════════════'));
         
         // Download media
         let media = await q.download();
-        let inputPath = path.join(tmpdir(), `input_${Date.now()}.${mime.includes('video') ? 'mp4' : 'jpg'}`);
-        let outputPath = path.join(tmpdir(), `output_${Date.now()}.mp4`);
+        let inputPath = path.join(tmpdir(), `input_${Date.now()}.${mime.includes('video') ? 'mp4' : mime.includes('image') ? 'jpg' : 'bin'}`);
+        let outputPath = path.join(tmpdir(), `output_premium_${Date.now()}.mp4`);
         
         await fs.promises.writeFile(inputPath, media);
         
         console.log(chalk.green('✅ Video downloaded successfully'));
         console.log(chalk.gray(`📁 Input: ${inputPath}`));
         console.log(chalk.gray(`📁 Output: ${outputPath}`));
-        console.log(chalk.cyan('════════════════════════════════════════════'));
+        console.log(chalk.cyan('════════════════════════════════════════════════════'));
         
         // Update progress ke encoding
         clearInterval(progressInterval);
         await conn.sendMessage(m.chat, {
-            text: `🔄 *Memproses Video...*\n\n▰▰▰▱▱▱ 25%\n📊 *Status:* Encoding video...\n⚙️ *Proses:* FFmpeg enhancement`,
+            text: `🎬 *VIDEO ENHANCEMENT PREMIUM*\n\n▰▰▰▱▱▱ 25%\n📊 Status: Encoding video...\n⚙️ Proses: FFmpeg Premium Enhancement\n✨ Quality: Maximum Clarity`,
             edit: progressMsg.key
         });
         
-        // Parameter FFmpeg
-        // const ffmpegArgs = [
-        //     '-i', inputPath,
-        //     '-c:v', 'libx264',
-        //     '-preset', 'slow',
-        //     '-crf', '18',
-        //     '-vf', 'scale=1920:1080:flags=lanczos',
-        //     '-c:a', 'aac',
-        //     '-b:a', '192k',
-        //     '-movflags', '+faststart',
-        //     '-pix_fmt', 'yuv420p',
-        //     '-profile:v', 'high',
-        //     '-level', '4.2',
-        //     '-maxrate', '5M',
-        //     '-bufsize', '10M',
-        //     '-r', '30',
-        //     '-ar', '44100',
-        //     '-f', 'mp4',
-        //     '-y',
-        //     outputPath
-        // ];
+        // PARAMETER FFMPEG PREMIUM QUALITY dengan aspect ratio terjaga
         const ffmpegArgs = [
-            '-threads', '0',           
+            '-threads', '0',           // Gunakan semua core CPU
             '-i', inputPath,
             '-c:v', 'libx264',
-            '-preset', 'fast',  
-            '-crf', '24',             
-            '-vf', 'scale=1920:1080:flags=lanczos',
-            '-c:a', 'aac',          
+            '-preset', 'medium',       // Balance antara kualitas & kecepatan
+            '-crf', '18',              // Kualitas sangat tinggi (16-18 = premium)
+            '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease:flags=lanczos,setsar=1',
+            '-c:a', 'aac',
             '-b:a', '192k',
-            '-movflags', '+faststart',
-            '-pix_fmt', 'yuv420p',
+            '-b:v', '8M',              // Bitrate video target (tinggi untuk kualitas)
+            '-maxrate', '12M',         // Bitrate maksimum
+            '-bufsize', '15M',         // Buffer size
             '-profile:v', 'high',
             '-level', '4.2',
-            '-maxrate', '5M',
-            '-bufsize', '10M',
-            '-r', '30',
-            '-ar', '44100',
+            '-pix_fmt', 'yuv420p',
+            '-movflags', '+faststart',
+            '-tune', 'film',           // Optimasi untuk konten film
+            '-x264-params', 'aq-mode=3:aq-strength=1.0:psy-rd=1.0,1.0',
             '-f', 'mp4',
             '-y',
             outputPath
         ];
         
         // Eksekusi FFmpeg dengan output ke console
-        console.log(chalk.yellow('🚀 Starting FFmpeg process...'));
+        console.log(chalk.yellow('🚀 Starting FFmpeg Premium Process...'));
         console.log(chalk.gray('Command: ffmpeg ' + ffmpegArgs.join(' ')));
-        console.log(chalk.cyan('════════════════════════════════════════════'));
+        console.log(chalk.cyan('════════════════════════════════════════════════════'));
         
         const startTime = Date.now();
+        let lastProgress = 0;
         
         await new Promise((resolve, reject) => {
             const ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
@@ -131,11 +113,12 @@ let handler = async (m, { conn, usedPrefix, command }) => {
             // Tampilkan output FFmpeg di console
             ffmpegProcess.stderr.on('data', (data) => {
                 const line = data.toString();
+                
                 // Parse progress dari output FFmpeg
                 if (line.includes('frame=') || line.includes('fps=') || line.includes('time=')) {
                     console.log(chalk.gray(`[FFMPEG] ${line.trim()}`));
                     
-                    // Coba ekstrak progress percentage
+                    // Ekstrak progress dari output
                     const timeMatch = line.match(/time=(\d+):(\d+):(\d+\.\d+)/);
                     if (timeMatch) {
                         const hours = parseInt(timeMatch[1]);
@@ -143,12 +126,16 @@ let handler = async (m, { conn, usedPrefix, command }) => {
                         const seconds = parseFloat(timeMatch[3]);
                         const totalSeconds = hours * 3600 + minutes * 60 + seconds;
                         
-                        // Update progress di chat (sederhana)
-                        const progress = Math.min(90, Math.floor(totalSeconds / 10)); // contoh
-                        if (progress % 10 === 0) {
+                        // Asumsikan video maksimal 60 detik untuk progress estimation
+                        // (Ini bisa disesuaikan dengan duration actual video)
+                        const progress = Math.min(90, Math.floor((totalSeconds / 60) * 100));
+                        
+                        if (progress > lastProgress + 5) { // Update setiap 5% peningkatan
+                            lastProgress = progress;
                             const progressBar = '▰'.repeat(Math.floor(progress/10)) + '▱'.repeat(10 - Math.floor(progress/10));
+                            
                             conn.sendMessage(m.chat, {
-                                text: `🔄 *Memproses Video...*\n\n${progressBar} ${progress}%\n📊 *Status:* Encoding...\n⏱️ *Waktu:* ${Math.floor((Date.now() - startTime)/1000)} detik`,
+                                text: `🎬 *VIDEO ENHANCEMENT PREMIUM*\n\n${progressBar} ${progress}%\n📊 Status: Encoding...\n⚙️ CRF: 18 (Premium)\n⏱️ Waktu: ${Math.floor((Date.now() - startTime)/1000)} detik`,
                                 edit: progressMsg.key
                             }).catch(() => {});
                         }
@@ -172,16 +159,16 @@ let handler = async (m, { conn, usedPrefix, command }) => {
                 reject(err);
             });
             
-            // Timeout setelah 10 menit
+            // Timeout setelah 15 menit (karena premium quality lebih lama)
             setTimeout(() => {
                 ffmpegProcess.kill();
-                reject(new Error('FFmpeg timeout setelah 10 menit'));
-            }, 10 * 60 * 1000);
+                reject(new Error('FFmpeg timeout setelah 15 menit'));
+            }, 15 * 60 * 1000);
         });
         
         // Update progress selesai
         await conn.sendMessage(m.chat, {
-            text: `✅ *Proses Encoding Selesai!*\n\n▰▰▰▰▰▰▰ 100%\n📊 *Status:* Mengirim hasil...\n🎬 *Video siap!*`,
+            text: `✅ *Proses Encoding Selesai!*\n\n▰▰▰▰▰▰▰ 100%\n📊 Status: Mengirim hasil...\n🎬 Video Premium siap!`,
             edit: progressMsg.key
         });
         
@@ -191,11 +178,12 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         const stats = fs.statSync(outputPath);
         const duration = ((Date.now() - startTime) / 1000).toFixed(1);
         
-        console.log(chalk.green('════════════════════════════════════════════'));
-        console.log(chalk.green(`🎉 PROCESS COMPLETED SUCCESSFULLY!`));
+        console.log(chalk.green('════════════════════════════════════════════════════'));
+        console.log(chalk.green(`🎉 PREMIUM PROCESS COMPLETED SUCCESSFULLY!`));
         console.log(chalk.green(`📊 File size: ${fileSize} MB`));
         console.log(chalk.green(`⏱️ Total time: ${duration} seconds`));
-        console.log(chalk.green('════════════════════════════════════════════'));
+        console.log(chalk.green(`⚡ Quality: CRF 18 (Premium)`));
+        console.log(chalk.green('════════════════════════════════════════════════════'));
         
         // Hapus pesan progress
         await conn.sendMessage(m.chat, { delete: progressMsg.key });
@@ -203,22 +191,24 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         // Kirim video dengan caption menarik
         await conn.sendMessage(m.chat, {
             video: processedVideo,
-            caption: `✨ *VIDEO ENHANCEMENT COMPLETE!* ✨\n\n` +
-                    `╔══════════════════════════════╗\n` +
-                    `║        📊 STATISTICS        ║\n` +
-                    `╠══════════════════════════════╣\n` +
+            caption: `✨ *PREMIUM VIDEO ENHANCEMENT COMPLETE!* ✨\n\n` +
+                    `╔══════════════════════════════════╗\n` +
+                    `║        🏆 PREMIUM STATS         ║\n` +
+                    `╠══════════════════════════════════╣\n` +
                     `║ 📏 Size: ${fileSize} MB\n` +
                     `║ ⏱️ Time: ${duration}s\n` +
-                    `║ 🎬 Codec: H.264 + AAC\n` +
+                    `║ 🎬 Codec: H.264 High Profile\n` +
+                    `║ ✨ Quality: CRF 18 (Premium)\n` +
                     `║ 📱 Ready: WhatsApp Story\n` +
-                    `╚══════════════════════════════╝\n\n` +
-                    `✅ *Features Applied:*\n` +
-                    `├ ⚡ Anti-Compression Tech\n` +
-                    `├ 🎨 Quality Enhancement\n` +
-                    `├ 📈 Resolution Upscale\n` +
-                    `└ 🔧 Optimized Encoding\n\n` +
-                    `Video optimized for WhatsApp!`,
-            fileName: `enhanced_${Date.now()}.mp4`,
+                    `╚══════════════════════════════════╝\n\n` +
+                    `✅ *Premium Features Applied:*\n` +
+                    `├ ⚡ Anti-Compression Technology\n` +
+                    `├ 🎨 Maximum Clarity & Detail\n` +
+                    `├ 📈 Smart Aspect Ratio Preservation\n` +
+                    `├ 🔧 Film-Tuned Encoding\n` +
+                    `└ 🛡️ WhatsApp Optimized\n\n` +
+                    `Video optimized for WhatsApp with maximum quality preservation!`,
+            fileName: `premium_enhanced_${Date.now()}.mp4`,
             mimetype: 'video/mp4'
         }, { quoted: m });
         
@@ -229,12 +219,12 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         ]);
         
         console.log(chalk.green('🗑️ Temporary files cleaned up'));
-        console.log(chalk.cyan('════════════════════════════════════════════\n'));
+        console.log(chalk.cyan('════════════════════════════════════════════════════\n'));
         
     } catch (error) {
-        console.error(chalk.red('\n❌ PROCESS FAILED:'));
+        console.error(chalk.red('\n❌ PREMIUM PROCESS FAILED:'));
         console.error(chalk.red(error.stack || error.message));
-        console.log(chalk.cyan('════════════════════════════════════════════\n'));
+        console.log(chalk.cyan('════════════════════════════════════════════════════\n'));
         
         try {
             // Hapus pesan progress jika error
@@ -246,13 +236,13 @@ let handler = async (m, { conn, usedPrefix, command }) => {
             }
         } catch {}
         
-        m.reply(`❌ *PROSES GAGAL!*\n\n${error.message}\n\n🔧 *Troubleshooting:*\n• Pastikan FFmpeg terinstall\n• Video tidak corrupt\n• Coba video lebih kecil\n• Hubungi owner jika masalah berlanjut`);
+        m.reply(`❌ *PROSES PREMIUM GAGAL!*\n\n${error.message}\n\n🔧 *Troubleshooting:*\n• Pastikan FFmpeg terinstall\n• Video tidak corrupt\n• Server memiliki cukup resources\n• Coba video lebih kecil terlebih dahulu\n• Hubungi owner jika masalah berlanjut`);
     }
 };
 
-handler.help = ['to8k', 'enhance', 'upvideo'];
+handler.help = ['to8k', 'enhance', 'upvideo', 'premium'];
 handler.tags = ['tools'];
-handler.command = /^(to8k|enhance|upvideo|improve|hd|quality)$/i;
+handler.command = /^(to8k|enhance|upvideo|improve|hd|quality|premium)$/i;
 handler.limit = true;
 handler.premium = false;
 handler.register = false;
